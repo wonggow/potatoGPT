@@ -25,7 +25,7 @@ class CustomGPTDataset(Dataset): # For format references -> https://docs.pytorch
 def create_dataloader(txt, batch_size=4, max_length=256, 
                          stride=256, shuffle=True, drop_last=True,
                          tokenizer=None, num_workers=0):
-
+    
     dataset = CustomGPTDataset(txt, tokenizer, max_length, stride)
 
     dataloader = DataLoader(
@@ -39,8 +39,8 @@ def create_dataloader(txt, batch_size=4, max_length=256,
 
 
 
-with open("harrypotter.txt", "r", encoding="utf-8") as f:
-    raw_text = f.read()
+# with open("harrypotter.txt", "r", encoding="utf-8") as f:
+#     raw_text = f.read()
     
 # enc = tiktoken.get_encoding("gpt2")
 
