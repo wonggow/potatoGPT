@@ -87,7 +87,22 @@ class GPTModel(nn.Module):
 
         logits = self.lm_head(x)
         return logits       
+    
+    @torch.no_grad()
+    def generate_text(self, idx, max_new_tokens, context_size):
+        for _ in range(max_new_tokens): 
+            idx_cond = idx[:, -context_size:] # batch, context_size, vocab_size. take from -context_length to last token
 
+            logits = self(idx_cond) # feed into model
+
+            logits = logits[:, -1, :] # take last tensor of result
+
+            probas = torch.softmax(logits, dim=-1)
+            idx_next = torch.argmax(probas, dim=-1, keepdim=True)
+
+            idx = torch.cat((idx, idx_next), dim=1)
+        return(idx)
+    
 def text_to_token(text, tokenizer):
     encoded = tokenizer.encode(text)
     return (torch.tensor(encoded.ids).unsqueeze(0)) 
@@ -96,20 +111,6 @@ def token_to_text(token, tokenizer):
     decoded = tokenizer.decode((token.tolist()[0]))
     return (decoded)
 
-@torch.no_grad()
-def generate_text(model, idx, max_new_tokens, context_size):
-    for _ in range(max_new_tokens): # Autoregressive for each token in max_new_tokens.
-        idx_cond = idx[:, -context_size:] # batch, context_size, vocab_size. take from -context_length to last token
-
-        logits = model(idx_cond) # feed into model
-
-        logits = logits[:, -1, :] # take last tensor of result
-
-        probas = torch.softmax(logits, dim=-1)
-        idx_next = torch.argmax(probas, dim=-1, keepdim=True)
-
-        idx = torch.cat((idx, idx_next), dim=1)
-    return(idx)
 
 def calc_loss_batch(input_batch, target_batch, model, device):
     input_batch = input_batch.to(device)
@@ -144,8 +145,8 @@ def generate_and_print_sample(model, tokenizer, device, text):
     context_size = model.positional_embeddings.weight.shape[0]
     encoded = text_to_token(text, tokenizer).to(device)
     with torch.no_grad():
-        token_ids = generate_text(
-            model=model, idx=encoded,
+        token_ids = model.generate_text(
+            idx=encoded,
             max_new_tokens=50, context_size=context_size
         )
     decoded_text = token_to_text(token_ids, tokenizer)
@@ -190,7 +191,14 @@ def model_training(model, train_loader, eval_loader, optimizer, device, num_epoc
                 f"Train loss {train_loss:.3f}, "
                 f"Val loss {val_loss:.3f}"
                 )
-            generate_and_print_sample(
-                model, tokenizer, device, start_context="hello"
-            )
+                if global_step % 30 == 0:
+                    generate_and_print_sample(
+                        model, tokenizer, device, start_context
+                    )
     return train_losses, val_losses, track_tokens_seen
+
+def total_params(model, verbose=False):
+    total_parameter = sum(p.numel() for p in model.parameters())
+    if verbose:
+        print("Total Parameter:", total_parameter)
+    return total_parameter

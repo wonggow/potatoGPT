@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 
-class CustomGPTDataset(Dataset): # For format references -> https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html
+class CustomGPTDataset(Dataset):
     def __init__(self, txt: str, tokenizer: Tokenizer, max_length: int, stride: int):
         self.input_ids = []                                 
         self.target_ids = []
@@ -11,7 +11,7 @@ class CustomGPTDataset(Dataset): # For format references -> https://docs.pytorch
         encoding = tokenizer.encode(txt)
         token_ids = encoding.ids
 
-        for i in range(0, len(token_ids) - max_length, stride): # Dont forget that python's range already implements -1 during the substraction.
+        for i in range(0, len(token_ids) - max_length, stride): # -1
             input_chunk = token_ids[i:i + max_length]
             target_chunk = token_ids[i + 1: i + max_length + 1]
 
