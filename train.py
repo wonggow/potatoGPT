@@ -1,12 +1,11 @@
-from core.dataloader import *
-from core.tokenizer import *
-from core.model import *
-from datasets import load_dataset
+from core.dataloader import create_dataloader
+from core.tokenizer import load_tokenizer
+from core.model import GPTModel, model_training
+from core.utility import total_params
 import torch.optim
-
 import config as cfg
 
-TOKENIZER = Tokenizer.from_file(cfg.TOKENIZER_PATH)
+TOKENIZER = load_tokenizer(cfg.TOKENIZER_PATH)
 
 DEVICE = torch.device(
     "cuda" if cfg.DEVICE == "auto" and torch.cuda.is_available()
@@ -15,17 +14,26 @@ DEVICE = torch.device(
     else cfg.DEVICE
 )  
 
-with open("dataset/harrypotter.txt", "r", encoding="utf-8") as f:
-    raw_text = f.read()
+texts = []
+
+for file in cfg.MODEL_TRAINING_FILES:
+    with open(file, "r", encoding="utf-8") as f:
+        texts.append(f.read())
+
+raw_text = "\n".join(texts)
 
 
-# with open("dataset/train.txt", "r", encoding="utf-8") as f:
-#     raw2_text = f.read()
 
+split_data = int(cfg.TRAIN_RATIO * len(raw_text))
+train_data = raw_text[:split_data]
+eval_data = raw_text[split_data:]
 
-# raw_text = raw_text + raw2_text
-dataloader = create_dataloader(
-    raw_text, batch_size=cfg.BATCH_SIZE, max_length=cfg.CONTEXT_LENGTH, stride=cfg.CONTEXT_LENGTH, shuffle=cfg.SHUFFLE, tokenizer=TOKENIZER
+train_dataloader = create_dataloader(
+    train_data, batch_size=cfg.BATCH_SIZE, max_length=cfg.CONTEXT_LENGTH, stride=cfg.CONTEXT_LENGTH, shuffle=cfg.SHUFFLE, tokenizer=TOKENIZER
+)
+
+eval_dataloader = create_dataloader(
+    eval_data, batch_size=cfg.BATCH_SIZE, max_length=cfg.CONTEXT_LENGTH, stride=cfg.CONTEXT_LENGTH, shuffle=False, tokenizer=TOKENIZER
 )
 
 model = GPTModel(
@@ -40,9 +48,11 @@ model = model.to(DEVICE)
 
 OPTIMIZER = torch.optim.AdamW(model.parameters(), lr=4e-4, weight_decay=0.1)  
 
+total_params(model, verbose=True)
+
 model_training(model=model, 
-                train_loader=dataloader,
-                eval_loader=dataloader, 
+                train_loader=train_dataloader,
+                eval_loader=eval_dataloader, 
                 optimizer=OPTIMIZER, 
                 device=DEVICE, 
                 eval_freq= cfg.EVAL_FREQ, 
