@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from .utility import text_to_token, token_to_text
+
 
 class CausalSelfAttention(nn.Module):
     def __init__(self, d_model, n_heads, dropout=0.0, bias=False):
         super().__init__()
-        assert d_model % n_heads == 0 # Split features must be same across heads
+        assert d_model % n_heads == 0 
 
         self.d_model = d_model
         self.n_heads = n_heads
@@ -16,13 +18,13 @@ class CausalSelfAttention(nn.Module):
         self.dropout = dropout      
 
     def forward(self, x):
-        B, T, C = x.shape # Batch, Sequence Length, d_model || embedding_dimension
+        B, T, C = x.shape 
 
         qkv = self.qkv(x) # X * Wqkv
         q, k, v = qkv.chunk(3, dim=-1)
 
-        q = q.view(B, T, self.n_heads, self.head_dim).transpose(1, 2) # split into n_heads, and each head receives head_dim features
-        k = k.view(B, T, self.n_heads, self.head_dim).transpose(1, 2) # transpose to make it into [B, heads, T, head_dim]
+        q = q.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
+        k = k.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
         v = v.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
 
         y = F.scaled_dot_product_attention(                 
@@ -91,7 +93,7 @@ class GPTModel(nn.Module):
     @torch.no_grad()
     def generate_text(self, idx, max_new_tokens, context_size):
         for _ in range(max_new_tokens): 
-            idx_cond = idx[:, -context_size:] # batch, context_size, vocab_size. take from -context_length to last token
+            idx_cond = idx[:, -context_size:] # batch, seq_len. take from -context_length to last token
 
             logits = self(idx_cond) # feed into model
 
@@ -102,15 +104,6 @@ class GPTModel(nn.Module):
 
             idx = torch.cat((idx, idx_next), dim=1)
         return(idx)
-    
-def text_to_token(text, tokenizer):
-    encoded = tokenizer.encode(text)
-    return (torch.tensor(encoded.ids).unsqueeze(0)) 
-
-def token_to_text(token, tokenizer):
-    decoded = tokenizer.decode((token.tolist()[0]))
-    return (decoded)
-
 
 def calc_loss_batch(input_batch, target_batch, model, device):
     input_batch = input_batch.to(device)
@@ -196,9 +189,3 @@ def model_training(model, train_loader, eval_loader, optimizer, device, num_epoc
                         model, tokenizer, device, start_context
                     )
     return train_losses, val_losses, track_tokens_seen
-
-def total_params(model, verbose=False):
-    total_parameter = sum(p.numel() for p in model.parameters())
-    if verbose:
-        print("Total Parameter:", total_parameter)
-    return total_parameter

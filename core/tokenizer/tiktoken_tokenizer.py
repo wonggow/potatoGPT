@@ -1,5 +1,4 @@
 import tiktoken
-
 def validate_model(model:str):
     try:
         enc = tiktoken.encoding_for_model(model)
@@ -22,18 +21,3 @@ def tokenize(enc: tiktoken.core.Encoding, text: str):
     encoded = enc.encode(text)
     return encoded
 
-
-# with open("harrypotter.txt", "r", encoding="utf-8") as f:
-#     raw_text = f.read()
-
-# context_size = 6
-# enc = tiktoken.get_encoding("gpt2")
-# enc_text = tokenize(enc, raw_text)
-
-# enc_sample = enc_text
-
-# x = enc_sample[:context_size]
-# y = enc_sample[1:context_size+1]
-
-# print(f"x: {x}")
-# print(f"y: {y}")

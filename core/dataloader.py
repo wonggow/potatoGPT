@@ -37,5 +37,5 @@ def create_dataloader(txt, batch_size=4, max_length=256,
         shuffle=shuffle,
         drop_last=drop_last,
         num_workers=num_workers
-    )                                      
+    )
 
