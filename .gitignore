@@ -4,5 +4,5 @@
 # Python Cache
 __pycache__/
 
-testfeature/.ipynb_checkpoints/
+.vscode
 .ipynb_checkpoints/
