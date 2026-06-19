@@ -1,6 +1,6 @@
-# SimpleGPT
+# potatoGPT
 
-SimpleGPT is the implementation of simplified GPT-2 architecture that is written in PyTorch. This project is designed for learning, experimentation, and research purposes. The codes are designed to be highly versatile, and easy to understand.
+potatoGPT is the implementation of simplified GPT-2 architecture that is written in PyTorch. This project is designed for those who are currently learning, experimentating, and researching on their potato device. The codes are designed to be highly versatile, and easy to understand.
 
 ## Features
 
