@@ -3,20 +3,21 @@ from core.tokenizer import load_tokenizer
 from core.model import GPTModel, model_training
 from core.utility import total_params
 import torch.optim
-import config as cfg
+from pathlib import Path
+from config import GPTConfig, TokenizerConfig, DeviceConfig
 
-TOKENIZER = load_tokenizer(cfg.TOKENIZER_PATH)
+TOKENIZER = load_tokenizer(TokenizerConfig.tokenizer_save_path)
 
 DEVICE = torch.device(
-    "cuda" if cfg.DEVICE == "auto" and torch.cuda.is_available()
-    else "mps" if cfg.DEVICE == "auto" and torch.backends.mps.is_available()
-    else "cpu" if cfg.DEVICE == "auto"
-    else cfg.DEVICE
+    "cuda" if DeviceConfig.device == "auto" and torch.cuda.is_available()
+    else "mps" if DeviceConfig.device == "auto" and torch.backends.mps.is_available()
+    else "cpu" if DeviceConfig.device == "auto"
+    else DeviceConfig.device
 )  
 
 texts = []
 
-for file in cfg.MODEL_TRAINING_FILES:
+for file in TokenizerConfig().tokenizer_training_files:
     with open(file, "r", encoding="utf-8") as f:
         texts.append(f.read())
 
@@ -24,25 +25,39 @@ raw_text = "\n".join(texts)
 
 
 
-split_data = int(cfg.TRAIN_RATIO * len(raw_text))
+split_data = int(GPTConfig.train_ratio * len(raw_text))
 train_data = raw_text[:split_data]
 eval_data = raw_text[split_data:]
 
 train_dataloader = create_dataloader(
-    train_data, batch_size=cfg.BATCH_SIZE, max_length=cfg.CONTEXT_LENGTH, stride=cfg.CONTEXT_LENGTH, shuffle=cfg.SHUFFLE, tokenizer=TOKENIZER
+    train_data, batch_size=GPTConfig.batch_size,
+    max_length=GPTConfig.context_length,
+    stride=GPTConfig.context_length,
+    shuffle=GPTConfig.shuffle,
+    tokenizer=TOKENIZER
 )
 
 eval_dataloader = create_dataloader(
-    eval_data, batch_size=cfg.BATCH_SIZE, max_length=cfg.CONTEXT_LENGTH, stride=cfg.CONTEXT_LENGTH, shuffle=False, tokenizer=TOKENIZER
+    eval_data, 
+    batch_size=GPTConfig.batch_size, 
+    max_length=GPTConfig.context_length, 
+    stride=GPTConfig.context_length, 
+    shuffle=False, 
+    tokenizer=TOKENIZER
 )
 
 model = GPTModel(
-    vocab_size = cfg.VOCAB_SIZE,
-    context_length = cfg.CONTEXT_LENGTH,
-    d_model = cfg.DIMENSION_OUT,
-    n_heads = cfg.HEAD_NUMBER,
-    n_layers = cfg.HEAD_LAYER,
+    vocab_size = TokenizerConfig.vocab_size,
+    context_length = GPTConfig.context_length,
+    d_model = GPTConfig.dimension_out,
+    n_heads = GPTConfig.head_number,
+    n_layers = GPTConfig.head_layer,
     )
+
+file_path = Path(DeviceConfig.save_model_path)
+
+if file_path.exists():
+    model.load_state_dict(torch.load(file_path))
 
 model = model.to(DEVICE)
 
@@ -55,8 +70,10 @@ model_training(model=model,
                 eval_loader=eval_dataloader, 
                 optimizer=OPTIMIZER, 
                 device=DEVICE, 
-                eval_freq= cfg.EVAL_FREQ, 
-                eval_iter=cfg.EVAL_ITER, 
-                start_context=cfg.START_CONTEXT, 
-                num_epochs=cfg.NUM_EPOCHS,
+                eval_freq= GPTConfig.eval_freq, 
+                eval_iter=GPTConfig.eval_iter, 
+                start_context=DeviceConfig.start_context, 
+                num_epochs=GPTConfig.num_epochs,
+                save_step = DeviceConfig.save_model_step,
+                save_file = DeviceConfig.save_model_path,
                 tokenizer=TOKENIZER)

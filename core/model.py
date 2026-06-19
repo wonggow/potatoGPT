@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .utility import text_to_token, token_to_text
 
-
 class CausalSelfAttention(nn.Module):
     def __init__(self, d_model, n_heads, dropout=0.0, bias=False):
         super().__init__()
@@ -158,7 +157,11 @@ def evaluate_model(model, train_loader, val_loader, device, eval_iter):
     model.train()
     return train_loss, val_loss
 
-def model_training(model, train_loader, eval_loader, optimizer, device, num_epochs, eval_freq, eval_iter, start_context, tokenizer):
+
+def save_checkpoint(model, save_file):
+    torch.save(model.state_dict(), save_file)
+
+def model_training(model, train_loader, eval_loader, optimizer, device, num_epochs, eval_freq, eval_iter, start_context, save_file, save_step, tokenizer):
     train_losses, val_losses, track_tokens_seen = [], [], []
     tokens_seen, global_step = 0, -1
 
@@ -184,8 +187,10 @@ def model_training(model, train_loader, eval_loader, optimizer, device, num_epoc
                 f"Train loss {train_loss:.3f}, "
                 f"Val loss {val_loss:.3f}"
                 )
-                if global_step % 30 == 0:
-                    generate_and_print_sample(
-                        model, tokenizer, device, start_context
-                    )
+            if global_step % 30 == 0:
+                generate_and_print_sample(
+                    model, tokenizer, device, start_context
+                )
+            if global_step % save_step == 0:
+                save_checkpoint(model, save_file)
     return train_losses, val_losses, track_tokens_seen

@@ -1,39 +1,53 @@
-import torch
-from tokenizers import Tokenizer
+from pathlib import Path
+from dataclasses import dataclass, field
 
 # train.py
-BATCH_SIZE = 4 # Context_len * batch_size = input per process
-CONTEXT_LENGTH = 256 # How many tokens should a tokenizer see.
-STRIDE = 256 # How many tokens should a dataloader process before moving to next batch. Stride = Context_Length to prevent overlapping/underlapping
-SHUFFLE = True 
 
-DIMENSION_OUT = 1024 # Dimension Features, Vocab Size x Dimension
-HEAD_NUMBER = 4 # DIMENSION OUT / HEAD_NUMBER = TOTAL DIM per HEAD
-HEAD_LAYER = 4
+@dataclass
+class GPTConfig:
+    batch_size: int = 4 # Context_len * batch_size = input per process
+    context_length: int = 128 # How many tokens should a tokenizer see.
+    stride: int = 128 # How many tokens should a dataloader process before moving to next batch. Stride = Context_Length to prevent overlapping/underlapping
+    shuffle: bool = True 
 
-EVAL_FREQ = 5
-EVAL_ITER = 5
-START_CONTEXT = "Harry Potter"
-NUM_EPOCHS = 10
+    dimension_out: int = 256 # Dimension Features, Vocab Size x Dimension
+    head_number: int = 4 # DIMENSION OUT / HEAD_NUMBER = TOTAL DIM per HEAD
+    head_layer: int = 4
 
-# Dataloader Ratio; train : eval
-TRAIN_RATIO = 0.9 
+    eval_freq: int = 10
+    eval_iter: int = 1
+    num_epochs: int = 5
 
-# Loss Function
-LEARNING_RATE = 4e-4
-WEIGHT_DECAY = 0.1
+    # Dataloader Ratio; train : eval
+    train_ratio: float = 0.9 
 
-DEVICE = "auto"
+    # Loss Function
+    learning_rate: float = 4e-4
+    weight_decay: float = 0.1
 
-# Model Training file
-MODEL_TRAINING_FILES = ["dataset/harrypotter.txt"]
+@dataclass
+class DeviceConfig:
+    device: str = "auto"
+    start_context: list | str = "Harry Potter"
 
-# Training Tokenizer
-TOKENIZER_TRAINING_FILES = ["dataset/harrypotter.txt"] #list
-VOCAB_SIZE = 8000
-MIN_FREQUENCY=2
-SAVE_PATH="token_bpe.json"
-ADD_BOS_EOS_PROCESSOR= False
-RESERVE_EXTRA_TOKENS= 256 # For fine-tuning extra token backup
+    # Model Training file
+    model_training_files: list[str] | str = field(
+        default_factory=lambda: [Path("dataset/harrypotter.txt")]
+    )
 
-TOKENIZER_PATH = "token_bpe.json"
+    save_model_step: int = 10
+    save_model_path: str = "model/checkpoint.pt"
+
+@dataclass
+class TokenizerConfig:
+    tokenizer_training_files: list | str = field(
+        default_factory= lambda: [Path("dataset/harrypotter.txt")]
+    ) 
+
+    vocab_size: int = 8000
+    min_frequency: int =2
+
+    add_bos_eos_processor: bool = False
+    reserve_extra_tokens: int = 256 # Extra token backup
+
+    tokenizer_save_path: str = "token_bpe.json"
