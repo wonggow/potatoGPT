@@ -46,19 +46,11 @@ potatoGPT is the implementation of simplified GPT-2 architecture that is written
 * Configurable context length
 * Load pretrained checkpoints for generation
 
-## Configuration Example
+### Configuration 
 
-```config.py
-BATCH_SIZE = 8
-CONTEXT_LENGTH = 1024
-VOCAB_SIZE = 32000
-DIMENSION_OUT = 384
-HEAD_NUMBER = 6
-HEAD_LAYER = 6
-LEARNING_RATE = 4e-4
-```
+* Edit config.py by yourself. EAFP implemented.
 
-## Workflow Example
+## Run the Code
 
 ```bash
 # 1. Train tokenizer
@@ -74,4 +66,4 @@ python inference.py
 
 ## Disclaimer
 
-SimpleGPT architecture is extremely outdated compared to modern LLM's that has many new architecture and optimization techniques which includes, Multimodality processing, Mixture-of-Experts, Flash Attention, RoPE, RLHF, MoE, and others. Current implementation doesn't support DDP yet. 
+PotatoGPT architecture is extremely outdated compared to modern LLM's that has many new architecture and optimization techniques which includes, Multimodality processing, Mixture-of-Experts, Flash Attention, RoPE, RLHF, MoE, and others. Current implementation doesn't support DDP yet. 
