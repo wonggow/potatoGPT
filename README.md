@@ -1,6 +1,6 @@
 # potatoGPT
 
-potatoGPT is the implementation of simplified GPT-2 architecture that is written in PyTorch. This project is designed for those who are currently learning, experimentating, and researching on their potato device. The codes are designed to be highly versatile, and easy to understand.
+potatoGPT is the implementation of simplified GPT-2 architecture that is written in PyTorch. This project is designed for those who are currently learning, experimentating, and researching on their potato device. The codes are designed to be highly versatile, and easy to understand. Current implementation doesn't support DDP yet. 
 
 ## Features
 
@@ -64,6 +64,3 @@ python inference.py
 ```
 
 
-## Disclaimer
-
-PotatoGPT architecture is extremely outdated compared to modern LLM's that has many new architecture and optimization techniques which includes, Multimodality processing, Mixture-of-Experts, Flash Attention, RoPE, RLHF, MoE, and others. Current implementation doesn't support DDP yet. 
